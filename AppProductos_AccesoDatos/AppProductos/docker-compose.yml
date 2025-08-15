@@ -1,0 +1,76 @@
+﻿name: app-productos-manager
+
+services:
+  db-mysql-productos:
+     image: mysql:9.2.0
+     container_name: dbProductos
+     ports:
+     - "3307:3306"
+     environment:
+       MYSQL_ROOT_PASSWORD: Password123
+     volumes:
+      - ./scripts:/docker-entrypoint-initdb.d  # Ejecuta scripts en el primer arranque
+     restart: always
+     networks:
+       - app-productos-network
+
+  backend-productos:
+     image: henrycano/backend-app-productos
+     container_name: backend-app-productos
+     depends_on:
+       - db-mysql-productos 
+     ports:
+     - "8086:8080"
+     environment:
+       MYSQL_HOST: db-mysql-productos
+       ConnectionStrings__MySqlConnection: "server=db-mysql-productos;port=3306;database=productosdb;user=root;password=Password123"
+     restart: always
+     networks:
+       - app-productos-network
+
+  backend-productos_v2:
+     image: henrycano/backend-app-productos
+     container_name: backend-app-productos_multiport
+     depends_on:
+       - db-mysql-productos 
+     ports:
+     - "8090:8080"
+     - "8091:8080"
+     - "8092:8080"
+     environment:
+       MYSQL_HOST: db-mysql-productos
+       ConnectionStrings__MySqlConnection: "server=db-mysql-productos;port=3306;database=productosdb;user=root;password=Password123"
+     restart: always
+     networks:
+       - app-productos-network
+
+  front-productos:
+     image: henrycano/front-app-productos
+     container_name: front-app-productos
+     depends_on:
+       - backend-productos
+     ports:
+     - "3001:3000"
+     environment:
+       NEXT_PUBLIC_API_URL: "http://localhost:8086/api/producto"
+     restart: always
+     networks:
+       - app-productos-network
+
+  phpmyadmin-productos:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-productos
+    depends_on:
+      - db-mysql-productos
+    environment:
+      PMA_HOST: db-mysql-productos
+      MYSQL_ROOT_PASSWORD: Password123
+    ports:
+      - "8089:80"
+    restart: always
+    networks:
+      - app-productos-network
+
+networks:
+  app-productos-network:
+    driver: bridge

@@ -1,0 +1,91 @@
+﻿name: app-productos-manager_build
+
+services:
+  db-mysql-productos_b:
+     image: mysql:9.2.0
+     container_name: dbProductos_b
+     ports:
+     - "3308:3306"
+     environment:
+       #MYSQL_ROOT_PASSWORD: Password123
+       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password_secret
+       MYSQL_ROOT_USER_FILE: /run/secrets/db_usuario_secret
+     secrets:
+       - db_password_secret
+       - db_usuario_secret
+     volumes:
+      - mysql-data:/var/lib/mysql # establecer el volumen
+      - ./AppProductos_AccesoDatos/AppProductos/scripts:/docker-entrypoint-initdb.d  # Ejecuta scripts en el primer arranque
+     restart: always
+     networks:
+       - app-productos-network_b
+
+  backend-productos_b:
+     image: henrycano/backend-app-productos_build:2.0.0
+     container_name: backend-app-productos_b
+     build:
+       dockerfile: Dockerfile
+       context: AppProductos_AccesoDatos/AppProductos
+     depends_on:
+       - db-mysql-productos_b 
+     ports:
+     - "8096:8080"
+     environment:
+       MYSQL_HOST: db-mysql-productos_b
+       ConnectionStrings__MySqlConnection: "server=db-mysql-productos_b;port=3306;database=productosdb;user=root;password=Password123"
+     restart: always
+     networks:
+       - app-productos-network_b
+     healthcheck:
+       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+       timeout: 10s
+       retries: 5
+
+  front-productos_b:
+     image: henrycano/front-app-productos_build:2.0.0
+     container_name: front-app-productos_b
+     build:
+       dockerfile: Dockerfile
+       context: frontend-productos
+     depends_on:
+       - backend-productos_b
+     ports:
+     - "3002:3000"
+     environment:
+       NEXT_PUBLIC_API_URL: "http://localhost:8096/api/producto"
+     restart: always
+     networks:
+       - app-productos-network_b
+
+  phpmyadmin-productos_b:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-productos_b
+    depends_on:
+      - db-mysql-productos_b
+    environment:
+      PMA_HOST: db-mysql-productos_b
+      #MYSQL_ROOT_PASSWORD: Password123
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password_secret
+    secrets:
+       - db_password_secret
+    volumes:
+      - mysql-phpmyadmin-data:/var/www/html
+    ports:
+      - "8099:80"
+    restart: always
+    networks:
+      - app-productos-network_b
+
+secrets:
+  db_usuario_secret:
+    file: ./db_usuario_secret.txt
+  db_password_secret:
+    file: ./db_password_secret.txt
+
+networks:
+  app-productos-network_b:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  mysql-phpmyadmin-data:
