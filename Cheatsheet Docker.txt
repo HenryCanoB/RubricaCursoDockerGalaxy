@@ -1,0 +1,91 @@
+============================
+	 IMAGENES 
+============================
+-Descargar imagen
+docker pull [imagen:tag]
+docker pull mysql:9.2.0
+
+-listado de imagenes
+docker image ls
+docker images
+
+-subir imagen a repositorio
+docker push [nombre_imagen:tag]
+docker push mi_imagen:1.0
+
+-Generar imagen desde un dockerfile
+docker build -t [nombre_imagen] .
+
+-inspeccionar una image
+docker inspect [nombre_imagen:tag]
+
+-borrar una imagen
+docker rmi [imagen]
+
+-borrar todas las imagenes sin usar
+docker image prune
+
+--borrar todas las imagenes no referencias por contenedores
+docker image prune -a
+
+-ver historial de imagen
+docker history [nombre_imagen]ahora d
+
+
+============================
+	 CONTENEDORES 
+============================
+-Crear contenedor
+docker run -d --name [nombre_contenedor] [nombre_imagen:tag]
+
+-Crear contenedor definiendo puertos
+docker run --name [nombre_contenedor] -p 3306:3306 [nombre_imagen]
+
+-Listar contenedores
+docker ps
+
+-Listar todos los contenedores incluso los detenidos
+docker ps -a
+
+-Inspeccionar contenedor
+docker inspect [nombre_contenedor]
+
+-Verificar logs
+docker logs [nombre_contenedor]
+
+-Detener el contenedor
+docker stop [nombre_contenedor]
+
+-iniciar contenedor
+docker start [nombre_contenedor]
+
+-reiniciar contenedor
+docker restart [nombre_contenedor]
+
+-eliminar contenedor
+docker rm [nombre_contenedor]
+
+-renombrar contenedor
+docker rename [nombre_actual] [nombre_nuevo]
+
+-pausar contenedor
+docker pause [nombre_contenedor]
+
+-ver recursos en tiempo real
+docker stats
+
+-crear red
+docker network create [nombre_de_red]
+
+-crear contenedor asignando la red creada
+docker run --name mypostgresql-v1 -e POSTGRESQL_PASSWORD=123456 --network=[nombre_de_red] bitnami/postgresql:15.10.0
+
+-Verificar la red
+docker inspect [nombre_de_red]
+
+-Listar redes
+docker network ls
+
+-eliminar red
+docker network rm red_rubrica
+
